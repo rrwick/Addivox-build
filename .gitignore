@@ -30,7 +30,7 @@ xcuserdata/
 *.xcsettings
 
 .vscode/
-/build/
+build/
 
 venv/
 site/
