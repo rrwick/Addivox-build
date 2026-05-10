@@ -32,6 +32,7 @@ xcuserdata/
 .vscode/
 
 build/
+build_cli/
 docs/
 
 venv/
