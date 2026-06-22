@@ -115,7 +115,7 @@ run_step() {
 
   log "${name}"
   mkdir -p "$(dirname "${log_file}")"
-  "$@" 2>&1 | tee "${log_file}"
+  "$@" 2>&1 | sed '/icudtl\.dat not found at .*skipping\.\.\./d' | tee "${log_file}"
 }
 
 run_msbuild() {
@@ -214,6 +214,7 @@ print_summary() {
 main() {
   require_tool cygpath
   require_tool find
+  require_tool sed
   require_tool tee
   find_msbuild
 
