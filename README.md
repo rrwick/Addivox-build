@@ -48,3 +48,25 @@ Main outputs:
 - `build/Addivox_v*_macOS.zip`
 - `build/AddivoxDemo_v*_macOS.zip`
 - `build/mac-release/logs/`
+
+## Windows release build
+
+Run from Git Bash on Windows:
+
+```sh
+./build_windows.sh
+./build_windows.sh --clean
+./build_windows.sh --install
+```
+
+The script builds the x64 Release standalone, VST3, and CLAP targets. It locates
+MSBuild through Visual Studio's `vswhere.exe`; set `PLATFORM_TOOLSET` to override
+the default `v145` toolset.
+
+Main outputs:
+
+- `build/dist/full/windows/Addivox.exe`
+- `build/dist/full/windows/Addivox.vst3/`
+- `build/dist/full/windows/Addivox.clap`
+- `build/dist/full/windows/factory_patches/`
+- `build/windows-release/logs/`
