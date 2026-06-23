@@ -152,7 +152,6 @@ collect_variant_artifacts() {
   local standalone="${root}/app/out/${BUILD_BINARY_NAME}.exe"
   local vst3="${root}/bundle/${BUILD_BINARY_NAME}.vst3"
   local clap="${root}/clap/out/${BUILD_BINARY_NAME}.clap"
-  local patches="${root}/app/out/factory_patches"
   require_file "${standalone}"
   require_file "${vst3}/Contents/x86_64-win/${BUILD_BINARY_NAME}.vst3"
   require_file "${clap}"
@@ -161,13 +160,6 @@ collect_variant_artifacts() {
   cp "${standalone}" "${ACTIVE_DIST_ROOT}/${BUILD_BINARY_NAME}.exe"
   cp "${clap}" "${ACTIVE_DIST_ROOT}/${BUILD_BINARY_NAME}.clap"
   copy_tree "${vst3}" "${ACTIVE_DIST_ROOT}/${BUILD_BINARY_NAME}.vst3"
-  copy_tree "${patches}" "${ACTIVE_DIST_ROOT}/factory_patches"
-
-  local count
-  count="$(find "${ACTIVE_DIST_ROOT}/factory_patches" -maxdepth 1 -type f -name '*.toml' | wc -l | tr -d ' ')"
-  [[ "${count}" -eq 15 ]] || fail "Expected 15 ${BUILD_VARIANT} factory patches, found ${count}."
-  count="$(find "${ACTIVE_DIST_ROOT}/${BUILD_BINARY_NAME}.vst3/Contents/Resources/factory_patches" -maxdepth 1 -type f -name '*.toml' | wc -l | tr -d ' ')"
-  [[ "${count}" -eq 15 ]] || fail "Expected 15 ${BUILD_VARIANT} VST3 factory patches, found ${count}."
 }
 
 build_variant() {
@@ -197,7 +189,7 @@ package_windows_variant() {
   rm -rf "${staging_dir}" "${package_path}"; mkdir -p "${staging_dir}"
   sed -E 's/\[([^][]+)\]\([^)]+\)/\1/g' "${INSTALLATION_DOC}" > "${staging_dir}/README.md"
   cp "${source_dir}/${binary_name}.exe" "${source_dir}/${binary_name}.clap" "${staging_dir}/"
-  cp -R "${source_dir}/${binary_name}.vst3" "${source_dir}/factory_patches" "${staging_dir}/"
+  cp -R "${source_dir}/${binary_name}.vst3" "${staging_dir}/"
   local staging_dir_windows="$(cygpath -w "${staging_dir}")"
   local package_path_windows="$(cygpath -w "${package_path}")"
   ADDIVOX_ZIP_SOURCE="${staging_dir_windows}" ADDIVOX_ZIP_DESTINATION="${package_path_windows}" powershell.exe -NoProfile -NonInteractive -Command \
@@ -229,8 +221,6 @@ install_plugins() {
   mkdir -p "${vst3_dir}" "${clap_dir}"
   install_plugin_variant full Addivox "${vst3_dir}" "${clap_dir}"
   install_plugin_variant demo AddivoxDemo "${vst3_dir}" "${clap_dir}"
-  rm -rf "${clap_dir}/factory_patches"
-  cp -R "${DIST_ROOT}/full/windows/factory_patches" "${clap_dir}/factory_patches"
 }
 
 print_summary() {

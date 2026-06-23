@@ -69,7 +69,6 @@ Main outputs:
 - `build/dist/full/windows/Addivox.exe`
 - `build/dist/full/windows/Addivox.vst3/`
 - `build/dist/full/windows/Addivox.clap`
-- `build/dist/full/windows/factory_patches/`
 - `build/dist/demo/windows/AddivoxDemo.exe`
 - `build/dist/demo/windows/AddivoxDemo.vst3/`
 - `build/dist/demo/windows/AddivoxDemo.clap`
