@@ -59,7 +59,8 @@ Run from Git Bash on Windows:
 ./build_windows.sh --install
 ```
 
-The script builds the x64 Release standalone, VST3, and CLAP targets. It locates
+The script builds full and demo variants of the x64 Release standalone, VST3,
+and CLAP targets, then creates versioned distribution ZIP files. It locates
 MSBuild through Visual Studio's `vswhere.exe`; set `PLATFORM_TOOLSET` to override
 the default `v145` toolset.
 
@@ -69,4 +70,9 @@ Main outputs:
 - `build/dist/full/windows/Addivox.vst3/`
 - `build/dist/full/windows/Addivox.clap`
 - `build/dist/full/windows/factory_patches/`
+- `build/dist/demo/windows/AddivoxDemo.exe`
+- `build/dist/demo/windows/AddivoxDemo.vst3/`
+- `build/dist/demo/windows/AddivoxDemo.clap`
+- `build/Addivox_v*_Windows.zip`
+- `build/AddivoxDemo_v*_Windows.zip`
 - `build/windows-release/logs/`
