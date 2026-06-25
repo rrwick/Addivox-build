@@ -1,0 +1,26 @@
+# Keep text files checked out with LF line endings on every platform.
+* text=auto eol=lf
+
+# Binary assets should never be line-ending normalized.
+*.a binary
+*.aif binary
+*.aiff binary
+*.dll binary
+*.dylib binary
+*.exe binary
+*.gif binary
+*.icns binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.lib binary
+*.mp3 binary
+*.otf binary
+*.pdf binary
+*.png binary
+*.so binary
+*.ttf binary
+*.wav binary
+*.woff binary
+*.woff2 binary
+*.zip binary
