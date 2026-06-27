@@ -30,7 +30,7 @@ ADDIVOX_REPO_DIR="${ADDIVOX_REPO_DIR:-${BUILD_REPO_DIR}/../Addivox}"
 ADDIVOX_REPO_DIR="$(cd "${ADDIVOX_REPO_DIR}" && pwd)"
 
 PROJECT_DIR="${ADDIVOX_REPO_DIR}/Addivox"
-INSTALLATION_DOC="${ADDIVOX_REPO_DIR}/docs/docs/installation_windows.md"
+WINDOWS_README_TEMPLATE="${BUILD_REPO_DIR}/readme_templates/windows.md"
 BUILD_ROOT="${BUILD_REPO_DIR}/build"
 WORK_ROOT="${BUILD_ROOT}/windows-release"
 LOG_ROOT="${WORK_ROOT}/logs"
@@ -104,6 +104,69 @@ find_msbuild() {
 read_plug_version() {
   PLUG_VERSION="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_STR[[:space:]]+"([^"]+)".*$/\1/p' "${PROJECT_DIR}/config.h" | head -n 1)"
   [[ -n "${PLUG_VERSION}" ]] || fail "Could not read PLUG_VERSION_STR from ${PROJECT_DIR}/config.h"
+}
+
+align_markdown_tables() {
+  awk '
+    function trim(s) { sub(/^[[:space:]]+/, "", s); sub(/[[:space:]]+$/, "", s); return s }
+    function repeat(s, n, out) { out = ""; while (n-- > 0) out = out s; return out }
+    function is_separator(row, i, cell) {
+      for (i = 1; i <= ncols; i++) {
+        cell = trim(cells[row, i])
+        if (cell !~ /^:?-{3,}:?$/) return 0
+      }
+      return 1
+    }
+    function add_row(line, i, n, cell) {
+      sub(/^[[:space:]]*\|/, "", line); sub(/\|[[:space:]]*$/, "", line)
+      n = split(line, parts, /\|/)
+      if (n > ncols) ncols = n
+      row_count++
+      for (i = 1; i <= n; i++) {
+        cell = trim(parts[i])
+        cells[row_count, i] = cell
+        if (length(cell) > widths[i]) widths[i] = length(cell)
+      }
+    }
+    function flush(row, i, cell, width) {
+      if (row_count == 0) return
+      for (row = 1; row <= row_count; row++) {
+        printf "|"
+        for (i = 1; i <= ncols; i++) {
+          width = widths[i] < 3 ? 3 : widths[i]
+          if (is_separator(row)) cell = repeat("-", width)
+          else cell = cells[row, i]
+          printf " %-" width "s |", cell
+        }
+        printf "\n"
+      }
+      delete cells; delete widths; row_count = 0; ncols = 0
+    }
+    /^[[:space:]]*\|/ { add_row($0); next }
+    { flush(); print }
+    END { flush() }
+  '
+}
+
+render_readme_template() {
+  local template_path="$1" destination_path="$2" product_name="$3" edition="$4" binary_name="$5" demo_limitations="$6"
+
+  awk \
+    -v product_name="${product_name}" \
+    -v edition="${edition}" \
+    -v demo_limitations="${demo_limitations}" \
+    -v exe_name="${binary_name}.exe" \
+    -v vst3_name="${binary_name}.vst3" \
+    -v clap_name="${binary_name}.clap" \
+    '{
+      gsub(/\{\{PRODUCT_NAME\}\}/, product_name)
+      gsub(/\{\{EDITION\}\}/, edition)
+      gsub(/\{\{DEMO_LIMITATIONS\}\}/, demo_limitations)
+      gsub(/\{\{EXE_NAME\}\}/, exe_name)
+      gsub(/\{\{VST3_NAME\}\}/, vst3_name)
+      gsub(/\{\{CLAP_NAME\}\}/, clap_name)
+      print
+    }' "${template_path}" | align_markdown_tables > "${destination_path}"
 }
 
 run_step() {
@@ -181,13 +244,20 @@ build_variant() {
 
 package_windows_variant() {
   local variant="$1" binary_name="$2"
+  local product_name="Addivox" edition="full version"
+  local demo_limitations=""
   local source_dir="${DIST_ROOT}/${variant}/windows"
   local package_name="${binary_name}_v${PLUG_VERSION}_Windows.zip"
   local package_path="${BUILD_ROOT}/${package_name}"
   local staging_dir="${PACKAGE_ROOT}/${binary_name}"
+  if [[ "${variant}" == "demo" ]]; then
+    product_name="Addivox Demo"
+    edition="demo version"
+    demo_limitations=$'\nIt has full functionality except:\n\n- It will only play white-key notes (e.g. C major).\n- Transposition is disabled, since that could be a partial workaround of the white-note-only limitation.\n'
+  fi
   log "Packaging ${package_name}"
   rm -rf "${staging_dir}" "${package_path}"; mkdir -p "${staging_dir}"
-  sed -E 's/\[([^][]+)\]\([^)]+\)/\1/g' "${INSTALLATION_DOC}" > "${staging_dir}/README.md"
+  render_readme_template "${WINDOWS_README_TEMPLATE}" "${staging_dir}/README.md" "${product_name}" "${edition}" "${binary_name}" "${demo_limitations}"
   cp "${source_dir}/${binary_name}.exe" "${source_dir}/${binary_name}.clap" "${staging_dir}/"
   cp -R "${source_dir}/${binary_name}.vst3" "${staging_dir}/"
   local staging_dir_windows="$(cygpath -w "${staging_dir}")"
@@ -237,9 +307,9 @@ print_summary() {
 }
 
 main() {
-  require_tool cygpath; require_tool find; require_tool powershell.exe; require_tool sed; require_tool tee
+  require_tool awk; require_tool cygpath; require_tool find; require_tool powershell.exe; require_tool sed; require_tool tee
   find_msbuild; read_plug_version
-  require_file "${INSTALLATION_DOC}"
+  require_file "${WINDOWS_README_TEMPLATE}"
   require_file "${ADDIVOX_REPO_DIR}/iPlug2/Dependencies/IPlug/VST3_SDK/pluginterfaces/base/funknown.h"
   require_file "${ADDIVOX_REPO_DIR}/iPlug2/Dependencies/IPlug/CLAP_SDK/include/clap/clap.h"
   require_file "${ADDIVOX_REPO_DIR}/iPlug2/Dependencies/IPlug/CLAP_HELPERS/include/clap/helpers/plugin.hh"

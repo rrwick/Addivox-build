@@ -93,7 +93,7 @@ ADDIVOX_REPO_DIR="$(cd "${ADDIVOX_REPO_DIR}" && pwd)"
 PROJECT_DIR="${ADDIVOX_REPO_DIR}/Addivox"
 MAC_PROJECT="${PROJECT_DIR}/projects/Addivox-macOS.xcodeproj"
 IOS_PROJECT="${PROJECT_DIR}/projects/Addivox-iOS.xcodeproj"
-MACOS_INSTALLATION_DOC="${ADDIVOX_REPO_DIR}/docs/docs/installation_macos.md"
+MACOS_README_TEMPLATE="${BUILD_REPO_DIR}/readme_templates/mac.md"
 
 BUILD_ROOT="${BUILD_REPO_DIR}/build"
 WORK_ROOT="${BUILD_ROOT}/mac-release"
@@ -508,10 +508,84 @@ record_packaged_artifact() {
   PACKAGED_ARTIFACTS+=("${artifact}")
 }
 
-copy_packaged_readme() {
-  local destination_path="$1"
+align_markdown_tables() {
+  awk '
+    function trim(s) { sub(/^[[:space:]]+/, "", s); sub(/[[:space:]]+$/, "", s); return s }
+    function repeat(s, n, out) { out = ""; while (n-- > 0) out = out s; return out }
+    function is_separator(row, i, cell) {
+      for (i = 1; i <= ncols; i++) {
+        cell = trim(cells[row, i])
+        if (cell !~ /^:?-{3,}:?$/) return 0
+      }
+      return 1
+    }
+    function add_row(line, i, n, cell) {
+      sub(/^[[:space:]]*\|/, "", line); sub(/\|[[:space:]]*$/, "", line)
+      n = split(line, parts, /\|/)
+      if (n > ncols) ncols = n
+      row_count++
+      for (i = 1; i <= n; i++) {
+        cell = trim(parts[i])
+        cells[row_count, i] = cell
+        if (length(cell) > widths[i]) widths[i] = length(cell)
+      }
+    }
+    function flush(row, i, cell, width) {
+      if (row_count == 0) return
+      for (row = 1; row <= row_count; row++) {
+        printf "|"
+        for (i = 1; i <= ncols; i++) {
+          width = widths[i] < 3 ? 3 : widths[i]
+          if (is_separator(row)) cell = repeat("-", width)
+          else cell = cells[row, i]
+          printf " %-" width "s |", cell
+        }
+        printf "\n"
+      }
+      delete cells; delete widths; row_count = 0; ncols = 0
+    }
+    /^[[:space:]]*\|/ { add_row($0); next }
+    { flush(); print }
+    END { flush() }
+  '
+}
 
-  sed -E 's/\[([^][]+)\]\([^)]+\)/\1/g' "${MACOS_INSTALLATION_DOC}" > "${destination_path}"
+render_readme_template() {
+  local template_path="$1" destination_path="$2" product_name="$3" edition="$4" binary_name="$5" demo_limitations="$6"
+
+  awk \
+    -v product_name="${product_name}" \
+    -v edition="${edition}" \
+    -v demo_limitations="${demo_limitations}" \
+    -v app_name="${binary_name}.app" \
+    -v component_name="${binary_name}.component" \
+    -v vst_name="${binary_name}.vst" \
+    -v vst3_name="${binary_name}.vst3" \
+    -v clap_name="${binary_name}.clap" \
+    '{
+      gsub(/\{\{PRODUCT_NAME\}\}/, product_name)
+      gsub(/\{\{EDITION\}\}/, edition)
+      gsub(/\{\{DEMO_LIMITATIONS\}\}/, demo_limitations)
+      gsub(/\{\{APP_NAME\}\}/, app_name)
+      gsub(/\{\{COMPONENT_NAME\}\}/, component_name)
+      gsub(/\{\{VST_NAME\}\}/, vst_name)
+      gsub(/\{\{VST3_NAME\}\}/, vst3_name)
+      gsub(/\{\{CLAP_NAME\}\}/, clap_name)
+      print
+    }' "${template_path}" | align_markdown_tables > "${destination_path}"
+}
+
+copy_packaged_readme() {
+  local destination_path="$1" variant="$2" binary_name="$3"
+  local product_name="Addivox" edition="full version"
+  local demo_limitations=""
+  if [[ "${variant}" == "demo" ]]; then
+    product_name="Addivox Demo"
+    edition="demo version"
+    demo_limitations=$'\nIt has full functionality except:\n\n- It will only play white-key notes (e.g. C major).\n- Transposition is disabled, since that could be a partial workaround of the white-note-only limitation.\n'
+  fi
+
+  render_readme_template "${MACOS_README_TEMPLATE}" "${destination_path}" "${product_name}" "${edition}" "${binary_name}" "${demo_limitations}"
 }
 
 copy_named_artifacts_from_products() {
@@ -885,13 +959,13 @@ package_macos_variant() {
   mkdir -p "${staging_dir}"
 
   local missing=0
-  if [[ -f "${MACOS_INSTALLATION_DOC}" ]]; then
-    if ! copy_packaged_readme "${staging_dir}/README.md"; then
-      record_fail "Package ${package_name} (could not create README.md from ${MACOS_INSTALLATION_DOC})"
+  if [[ -f "${MACOS_README_TEMPLATE}" ]]; then
+    if ! copy_packaged_readme "${staging_dir}/README.md" "${variant}" "${binary_name}"; then
+      record_fail "Package ${package_name} (could not create README.md from ${MACOS_README_TEMPLATE})"
       missing=1
     fi
   else
-    record_fail "Package ${package_name} (${MACOS_INSTALLATION_DOC} not found)"
+    record_fail "Package ${package_name} (${MACOS_README_TEMPLATE} not found)"
     missing=1
   fi
 
@@ -981,6 +1055,7 @@ print_summary() {
 }
 
 main() {
+  require_tool awk
   require_tool xcodebuild
   require_tool cmake
   require_tool zip
