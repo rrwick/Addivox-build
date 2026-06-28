@@ -12,19 +12,6 @@ Addivox_repos/
 
 `build_mac.sh` reads source files, Xcode projects, docs, and the `iPlug2` submodule from `../Addivox`, while all generated release artifacts are written under this repository's `build/` directory.
 
-## Documentation build
-
-```sh
-./build_docs.sh
-```
-
-`build_docs.sh` builds the MkDocs source from `../Addivox/docs` and writes the generated site to `docs/`.
-
-The script accepts `ADDIVOX_REPO_DIR` if the main repository is not checked out at `../Addivox`:
-
-```sh
-ADDIVOX_REPO_DIR=/path/to/Addivox ./build_docs.sh
-```
 
 ## macOS release build
 
@@ -48,6 +35,7 @@ Main outputs:
 - `build/Addivox_v*_macOS.zip`
 - `build/AddivoxDemo_v*_macOS.zip`
 - `build/mac-release/logs/`
+
 
 ## Windows release build
 

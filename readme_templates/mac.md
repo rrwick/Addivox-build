@@ -16,7 +16,7 @@ https://rrwick.github.io/Addivox/
 You do not need to install every file. `{{APP_NAME}}` is the standalone version, which runs by itself and also contains the Audio Unit v3 plugin. The other files are additional plugin formats, which are loaded inside a DAW such as Logic Pro, GarageBand or Ableton Live.
 
 
-## Standalone application
+## Standalone app
 
 Copy `{{APP_NAME}}` to your Mac's main `/Applications` folder. In Finder, this is usually shown as **Applications** in the sidebar. macOS may ask for an administrator password when you copy the app there. You can then open {{PRODUCT_NAME}} from Launchpad, Spotlight or Finder.
 
