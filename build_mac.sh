@@ -30,9 +30,6 @@ set -o pipefail
 #   build/dist/full/macos/Addivox.component
 #     Audio Unit v2 plugin bundle for macOS DAWs.
 #
-#   build/dist/full/macos/Addivox.vst
-#     VST2 plugin bundle for macOS hosts that still support VST2.
-#
 #   build/dist/full/macos/Addivox.vst3
 #     VST3 plugin bundle for macOS hosts.
 #
@@ -125,7 +122,6 @@ MAC_SCHEMES=(
   "macOS-AUv2"
   "macOS-AUv3"
   "macOS-AUv3Framework"
-  "macOS-VST2"
   "macOS-VST3"
   "macOS-CLAP"
 )
@@ -377,7 +373,6 @@ sign_and_notarize_macos_variant() {
   local artifact_names=(
     "${binary_name}.app"
     "${binary_name}.component"
-    "${binary_name}.vst"
     "${binary_name}.vst3"
     "${binary_name}.clap"
   )
@@ -559,7 +554,6 @@ render_readme_template() {
     -v demo_limitations="${demo_limitations}" \
     -v app_name="${binary_name}.app" \
     -v component_name="${binary_name}.component" \
-    -v vst_name="${binary_name}.vst" \
     -v vst3_name="${binary_name}.vst3" \
     -v clap_name="${binary_name}.clap" \
     '{
@@ -568,7 +562,6 @@ render_readme_template() {
       gsub(/\{\{DEMO_LIMITATIONS\}\}/, demo_limitations)
       gsub(/\{\{APP_NAME\}\}/, app_name)
       gsub(/\{\{COMPONENT_NAME\}\}/, component_name)
-      gsub(/\{\{VST_NAME\}\}/, vst_name)
       gsub(/\{\{VST3_NAME\}\}/, vst3_name)
       gsub(/\{\{CLAP_NAME\}\}/, clap_name)
       print
@@ -649,9 +642,6 @@ copy_macos_scheme_artifacts() {
     "macOS-AUv2")
       copy_named_artifacts_from_products "macos" "${products_dir}" "${BUILD_BINARY_NAME}.component"
       ;;
-    "macOS-VST2")
-      copy_named_artifacts_from_products "macos" "${products_dir}" "${BUILD_BINARY_NAME}.vst"
-      ;;
     "macOS-VST3")
       copy_named_artifacts_from_products "macos" "${products_dir}" "${BUILD_BINARY_NAME}.vst3"
       ;;
@@ -689,9 +679,6 @@ install_plugin_bundle() {
     *.component)
       install_bundle_to "${bundle_path}" "${HOME}/Library/Audio/Plug-Ins/Components/${bundle_name}"
       ;;
-    *.vst)
-      install_bundle_to "${bundle_path}" "${HOME}/Library/Audio/Plug-Ins/VST/${bundle_name}"
-      ;;
     *.vst3)
       install_bundle_to "${bundle_path}" "${HOME}/Library/Audio/Plug-Ins/VST3/${bundle_name}"
       ;;
@@ -718,7 +705,6 @@ install_plugins() {
     install_plugin_bundle "${bundle}"
   done < <(find "${DIST_ROOT}/full/macos" "${DIST_ROOT}/demo/macos" -type d \( \
       -name "*.component" -o \
-      -name "*.vst" -o \
       -name "*.vst3" -o \
       -name "*.clap" \
     \) -prune -print0 2>/dev/null)
@@ -947,7 +933,6 @@ package_macos_variant() {
   local artifact_names=(
     "${binary_name}.app"
     "${binary_name}.component"
-    "${binary_name}.vst"
     "${binary_name}.vst3"
     "${binary_name}.clap"
   )

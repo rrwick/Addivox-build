@@ -10,7 +10,6 @@ https://rrwick.github.io/Addivox/
 
 - `{{APP_NAME}}` - standalone application
 - `{{COMPONENT_NAME}}` - Audio Unit v2 plugin
-- `{{VST_NAME}}` - VST2 plugin
 - `{{VST3_NAME}}` - VST3 plugin
 - `{{CLAP_NAME}}` - CLAP plugin
 
@@ -42,10 +41,9 @@ Copy the plugin files you need to the matching folder below. The `~` symbol mean
 | `{{APP_NAME}}` | Audio Unit v3 | `/Applications` | Logic Pro, GarageBand, MainStage |
 | `{{COMPONENT_NAME}}` | Audio Unit v2 | `~/Library/Audio/Plug-Ins/Components/` | Logic Pro, GarageBand, Ableton Live, REAPER |
 | `{{VST3_NAME}}` | VST3 | `~/Library/Audio/Plug-Ins/VST3/` | Ableton Live, Cubase, REAPER, Studio One |
-| `{{VST_NAME}}` | VST2 | `~/Library/Audio/Plug-Ins/VST/` | Ableton Live, REAPER |
 | `{{CLAP_NAME}}` | CLAP | `~/Library/Audio/Plug-Ins/CLAP/` | Bitwig Studio, REAPER |
 
-If you are not sure which plugin format to install, start with `{{APP_NAME}}` for Logic Pro, GarageBand or MainStage, and `{{VST3_NAME}}` for most other modern DAWs. `{{COMPONENT_NAME}}` and `{{VST_NAME}}` are mainly useful for older DAWs.
+If you are not sure which plugin format to install, start with `{{APP_NAME}}` for Logic Pro, GarageBand or MainStage, and `{{VST3_NAME}}` for most other modern DAWs. `{{COMPONENT_NAME}}` is mainly useful for older DAWs.
 
 The `Library` folder inside your home folder is hidden by default. To open one of these folders in Finder:
 
@@ -67,7 +65,6 @@ All of the included formats can be used on Intel or Apple Silicon Macs, provided
 - `{{APP_NAME}}`
 - `{{COMPONENT_NAME}}`
 - `{{VST3_NAME}}`
-- `{{VST_NAME}}`
 - `{{CLAP_NAME}}`
 
 On an Intel Mac, use {{PRODUCT_NAME}} normally. On an Apple Silicon Mac, {{PRODUCT_NAME}} can run natively in Apple Silicon DAWs. It can also be used from Intel-only DAWs running under Rosetta, provided the DAW supports the plugin format you installed.
