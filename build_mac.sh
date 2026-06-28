@@ -430,15 +430,18 @@ sign_and_notarize_macos_distributables() {
 
 read_plug_version() {
   local config_header="${PROJECT_DIR}/config.h"
-  local version
+  local major minor patch
 
-  version="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_STR[[:space:]]+"([^"]+)".*$/\1/p' "${config_header}" | head -n 1)"
-  if [[ -z "${version}" ]]; then
-    echo "Could not read PLUG_VERSION_STR from ${config_header}" >&2
+  major="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_MAJOR[[:space:]]+([0-9]+).*$/\1/p' "${config_header}" | head -n 1)"
+  minor="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_MINOR[[:space:]]+([0-9]+).*$/\1/p' "${config_header}" | head -n 1)"
+  patch="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_PATCH[[:space:]]+([0-9]+).*$/\1/p' "${config_header}" | head -n 1)"
+
+  if [[ -z "${major}" || -z "${minor}" || -z "${patch}" ]]; then
+    echo "Could not read PLUG_VERSION_MAJOR/MINOR/PATCH from ${config_header}" >&2
     exit 1
   fi
 
-  PLUG_VERSION="${version}"
+  PLUG_VERSION="${major}.${minor}.${patch}"
 }
 
 copy_bundle() {

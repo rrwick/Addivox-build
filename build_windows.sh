@@ -101,8 +101,15 @@ find_msbuild() {
 }
 
 read_plug_version() {
-  PLUG_VERSION="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_STR[[:space:]]+"([^"]+)".*$/\1/p' "${PROJECT_DIR}/config.h" | head -n 1)"
-  [[ -n "${PLUG_VERSION}" ]] || fail "Could not read PLUG_VERSION_STR from ${PROJECT_DIR}/config.h"
+  local config_header="${PROJECT_DIR}/config.h"
+  local major minor patch
+
+  major="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_MAJOR[[:space:]]+([0-9]+).*$/\1/p' "${config_header}" | head -n 1)"
+  minor="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_MINOR[[:space:]]+([0-9]+).*$/\1/p' "${config_header}" | head -n 1)"
+  patch="$(sed -E -n 's/^[[:space:]]*#define[[:space:]]+PLUG_VERSION_PATCH[[:space:]]+([0-9]+).*$/\1/p' "${config_header}" | head -n 1)"
+
+  [[ -n "${major}" && -n "${minor}" && -n "${patch}" ]] || fail "Could not read PLUG_VERSION_MAJOR/MINOR/PATCH from ${config_header}"
+  PLUG_VERSION="${major}.${minor}.${patch}"
 }
 
 align_markdown_tables() {
