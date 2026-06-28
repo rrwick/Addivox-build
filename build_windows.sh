@@ -21,8 +21,7 @@ set -euo pipefail
 # Normal builds never install plugins implicitly.
 #
 # Prerequisites: Git Bash, Visual Studio C++/MSBuild, and the VST3/CLAP SDKs
-# under iPlug2/Dependencies/IPlug. Code signing and plugin validation are
-# intentionally not performed yet.
+# under iPlug2/Dependencies/IPlug.
 
 BUILD_REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ADDIVOX_REPO_DIR="${ADDIVOX_REPO_DIR:-${BUILD_REPO_DIR}/../Addivox}"
@@ -302,8 +301,6 @@ print_summary() {
   printf '\nPackaged artifacts: %d\n' "${#PACKAGED_ARTIFACTS[@]}"
   for item in "${PACKAGED_ARTIFACTS[@]}"; do printf '  %s\n' "${item}"; done
   [[ "${INSTALL_PLUGINS}" -eq 1 ]] && printf '\nPlugin install requested: yes\n' || printf '\nPlugin install requested: no. Use --install to install full and demo plugins.\n'
-  printf '\nSigning status: unsigned Windows artifacts. Code signing is not implemented yet.\n'
-  printf 'Validation status: plugin validators are not implemented yet.\n'
 }
 
 main() {
