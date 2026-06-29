@@ -183,6 +183,23 @@ run_step() {
   "$@" 2>&1 | sed '/icudtl\.dat not found at .*skipping\.\.\./d' | tee "${log_file}"
 }
 
+write_sha256_file() {
+  local artifact_path="$1"
+  local checksum_path="${artifact_path%.zip}.sha256"
+  local artifact_dir artifact_name checksum_name
+  artifact_dir="$(dirname "${artifact_path}")"
+  artifact_name="$(basename "${artifact_path}")"
+  checksum_name="$(basename "${checksum_path}")"
+
+  (
+    cd "${artifact_dir}" &&
+      sha256sum "${artifact_name}" > "${checksum_name}"
+  )
+
+  require_file "${checksum_path}"
+  PACKAGED_ARTIFACTS+=("${checksum_path}")
+}
+
 project_key() {
   case "$1" in
     Addivox-app.vcxproj) printf app ;;
@@ -255,6 +272,7 @@ package_windows_variant() {
   local source_dir="${DIST_ROOT}/${variant}/windows"
   local package_name="${binary_name}_v${PLUG_VERSION}_Windows.zip"
   local package_path="${BUILD_ROOT}/${package_name}"
+  local checksum_path="${package_path%.zip}.sha256"
   local staging_dir="${PACKAGE_ROOT}/${binary_name}"
   if [[ "${variant}" == "demo" ]]; then
     product_name="Addivox Demo"
@@ -262,7 +280,7 @@ package_windows_variant() {
     demo_limitations=$'\nIt has full functionality except:\n\n- It will only play white-key notes (e.g. C major).\n- Transposition is disabled, since that could be a partial workaround of the white-note-only limitation.\n'
   fi
   log "Packaging ${package_name}"
-  rm -rf "${staging_dir}" "${package_path}"; mkdir -p "${staging_dir}"
+  rm -rf "${staging_dir}" "${package_path}" "${checksum_path}"; mkdir -p "${staging_dir}"
   render_readme_template "${WINDOWS_README_TEMPLATE}" "${staging_dir}/README.md" "${product_name}" "${edition}" "${binary_name}" "${demo_limitations}"
   cp "${source_dir}/${binary_name}.exe" "${source_dir}/${binary_name}.clap" "${staging_dir}/"
   cp -R "${source_dir}/${binary_name}.vst3" "${staging_dir}/"
@@ -272,6 +290,7 @@ package_windows_variant() {
     'Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::CreateFromDirectory($env:ADDIVOX_ZIP_SOURCE, $env:ADDIVOX_ZIP_DESTINATION, [IO.Compression.CompressionLevel]::Optimal, $false)'
   require_file "${package_path}"
   PACKAGED_ARTIFACTS+=("${package_path}")
+  write_sha256_file "${package_path}"
 }
 
 package_windows_distributables() {
@@ -311,7 +330,7 @@ print_summary() {
 }
 
 main() {
-  require_tool awk; require_tool cygpath; require_tool find; require_tool powershell.exe; require_tool sed; require_tool tee
+  require_tool awk; require_tool cygpath; require_tool find; require_tool powershell.exe; require_tool sed; require_tool sha256sum; require_tool tee
   find_msbuild; read_plug_version
   require_file "${WINDOWS_README_TEMPLATE}"
   require_file "${ADDIVOX_REPO_DIR}/iPlug2/Dependencies/IPlug/VST3_SDK/pluginterfaces/base/funknown.h"
@@ -321,6 +340,7 @@ main() {
     log "Cleaning Windows build outputs"
     rm -rf "${WORK_ROOT}" "${DIST_ROOT}/full/windows" "${DIST_ROOT}/demo/windows" || fail "Could not clean outputs. Close Addivox and REAPER, then try again."
     rm -f "${BUILD_ROOT}"/Addivox_v*_Windows.zip "${BUILD_ROOT}"/AddivoxDemo_v*_Windows.zip
+    rm -f "${BUILD_ROOT}"/Addivox_v*_Windows.sha256 "${BUILD_ROOT}"/AddivoxDemo_v*_Windows.sha256
   fi
   rm -rf "${DIST_ROOT}/full/windows" "${DIST_ROOT}/demo/windows" "${PACKAGE_ROOT}"
   mkdir -p "${LOG_ROOT}" "${PACKAGE_ROOT}"

@@ -610,6 +610,26 @@ remove_ds_store_files() {
   find "${root}" -name ".DS_Store" -type f -delete
 }
 
+write_sha256_file() {
+  local artifact_path="$1"
+  local checksum_path="${artifact_path%.zip}.sha256"
+  local artifact_dir artifact_name checksum_name
+  artifact_dir="$(dirname "${artifact_path}")"
+  artifact_name="$(basename "${artifact_path}")"
+  checksum_name="$(basename "${checksum_path}")"
+
+  (
+    cd "${artifact_dir}" &&
+      shasum -a 256 "${artifact_name}" > "${checksum_name}"
+  )
+
+  if [[ -f "${checksum_path}" ]]; then
+    record_packaged_artifact "${checksum_path}"
+  else
+    record_fail "Checksum ${checksum_name} (${checksum_path} not created)"
+  fi
+}
+
 copy_named_artifacts_from_products() {
   local platform_label="$1"
   local products_dir="$2"
@@ -968,6 +988,7 @@ package_macos_variant() {
   local source_dir="${DIST_ROOT}/${variant}/macos"
   local package_name="${binary_name}_v${PLUG_VERSION}_macOS.zip"
   local package_path="${BUILD_ROOT}/${package_name}"
+  local checksum_path="${package_path%.zip}.sha256"
   local staging_dir="${PACKAGE_ROOT}/${binary_name}"
   local artifact_names=(
     "${binary_name}.app"
@@ -979,7 +1000,7 @@ package_macos_variant() {
 
   log "Packaging ${package_name}"
   mkdir -p "${PACKAGE_ROOT}"
-  rm -rf "${staging_dir}" "${package_path}"
+  rm -rf "${staging_dir}" "${package_path}" "${checksum_path}"
   mkdir -p "${staging_dir}"
 
   local missing=0
@@ -1017,6 +1038,7 @@ package_macos_variant() {
 
   if [[ -f "${package_path}" ]]; then
     record_packaged_artifact "${package_path}"
+    write_sha256_file "${package_path}"
     record_ok "Package ${package_name}"
   else
     record_fail "Package ${package_name} (${package_path} not created)"
@@ -1083,6 +1105,7 @@ print_summary() {
 main() {
   require_tool awk
   require_tool find
+  require_tool shasum
   require_tool xcodebuild
   require_tool cmake
   require_tool zip
@@ -1094,6 +1117,7 @@ main() {
 
   rm -rf "${DIST_ROOT}" "${XCODE_DERIVED_ROOT}" "${ARCHIVE_ROOT}" "${PACKAGE_ROOT}" "${NOTARY_ROOT}"
   rm -f "${BUILD_ROOT}"/Addivox_v*_macOS.zip "${BUILD_ROOT}"/AddivoxDemo_v*_macOS.zip
+  rm -f "${BUILD_ROOT}"/Addivox_v*_macOS.sha256 "${BUILD_ROOT}"/AddivoxDemo_v*_macOS.sha256
   mkdir -p "${DIST_ROOT}" "${LOG_ROOT}" "${ARCHIVE_ROOT}" "${PACKAGE_ROOT}"
 
   build_variant "full" 0
