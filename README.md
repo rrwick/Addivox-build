@@ -47,10 +47,7 @@ Run from Git Bash on Windows:
 ./build_windows.sh --install
 ```
 
-The script builds full and demo variants of the x64 Release standalone, VST3,
-and CLAP targets, then creates versioned distribution ZIP files. It locates
-MSBuild through Visual Studio's `vswhere.exe`; set `PLATFORM_TOOLSET` to override
-the default `v145` toolset.
+The script builds full and demo variants of the x64 Release standalone, VST3, and CLAP targets, then creates versioned distribution ZIP files. It locates MSBuild through Visual Studio's `vswhere.exe`. Set `PLATFORM_TOOLSET` to override the default `v145` toolset. This private release script passes `/p:PlatformToolset=...` to MSBuild, so that value overrides the public `../Addivox/Addivox/projects/*.vcxproj` files, which currently default to `v143` for broader Visual Studio 2022 compatibility.
 
 Main outputs:
 
