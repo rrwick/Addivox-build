@@ -603,6 +603,13 @@ copy_packaged_readme() {
   render_readme_template "${MACOS_README_TEMPLATE}" "${destination_path}" "${product_name}" "${edition}" "${binary_name}" "${demo_limitations}"
 }
 
+remove_ds_store_files() {
+  local root="$1"
+  [[ -d "${root}" ]] || return 0
+
+  find "${root}" -name ".DS_Store" -type f -delete
+}
+
 copy_named_artifacts_from_products() {
   local platform_label="$1"
   local products_dir="$2"
@@ -1001,6 +1008,8 @@ package_macos_variant() {
     return 0
   fi
 
+  remove_ds_store_files "${staging_dir}"
+
   (
     cd "${staging_dir}" &&
       zip -qry --symlinks "${package_path}" "${package_entries[@]}"
@@ -1073,6 +1082,7 @@ print_summary() {
 
 main() {
   require_tool awk
+  require_tool find
   require_tool xcodebuild
   require_tool cmake
   require_tool zip
