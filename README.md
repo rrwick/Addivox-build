@@ -33,7 +33,9 @@ Main outputs:
 - `build/dist/full/`
 - `build/dist/demo/`
 - `build/Addivox_v*_macOS.zip`
+- `build/Addivox_v*_macOS.sha256`
 - `build/AddivoxDemo_v*_macOS.zip`
+- `build/AddivoxDemo_v*_macOS.sha256`
 - `build/mac-release/logs/`
 
 
@@ -58,5 +60,7 @@ Main outputs:
 - `build/dist/demo/windows/AddivoxDemo.vst3/`
 - `build/dist/demo/windows/AddivoxDemo.clap`
 - `build/Addivox_v*_Windows.zip`
+- `build/Addivox_v*_Windows.sha256`
 - `build/AddivoxDemo_v*_Windows.zip`
+- `build/AddivoxDemo_v*_Windows.sha256`
 - `build/windows-release/logs/`

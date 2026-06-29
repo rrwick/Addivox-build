@@ -1,0 +1,21 @@
+- Bump the version in:
+  - `config.h`: `PLUG_VERSION_MAJOR`, `PLUG_VERSION_MINOR`, `PLUG_VERSION_PATCH`
+  - `config.h`: Also `PLUG_VERSION_HEX`
+  - `CMakeLists.txt`: line 2
+- If the calendar year has changed, search the code for "2026" to replace with "2027" (mainly for user-facing copyright strings).
+- Run `build_mac.sh` on my Mac and `build_windows.sh` on my PC.
+- Test everything!
+  - Install apps and plugins from the zip files, make sure they work.
+- Commit the version bump and push to GitHub.
+- Write release notes.
+- Create a GitHub release:
+  - Use the release notes I just wrote.
+  - Include the SHA-256 sums
+  - Attach the demo zips.
+- Create a new entry in the `release_notes.md` page of the docs, with the same info as the GitHub release.
+- Update the links in the `demo.md` page of the docs to point to the latest version.
+- Deploy the docs with `mkdocs gh-deploy`.
+- Update the attached files in the Lemon Squeezy store to be the new full versions.
+- Update the SHA-256 sums on Lemon Squeezy.
+- Copy all built zips and .sha256 files to my Dropbox directory of Addivox releases, in case any user wants an old version.
+- Perhaps send out an email to all previous purchasers (via Lemon Squeezy) to let them know a new version is available?
