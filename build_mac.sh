@@ -258,6 +258,25 @@ require_signing_prerequisites() {
   fi
 }
 
+extra_preprocessor_definitions_for_scheme() {
+  printf '%s' "\$(inherited) ADDIVOX_DEMO=${ADDIVOX_DEMO_VALUE}"
+}
+
+objc_prefix_for_scheme() {
+  local scheme="$1"
+
+  if [[ "${ADDIVOX_DEMO_VALUE}" -eq 1 ]]; then
+    case "${scheme}" in
+      macOS-AUv2|macOS-VST3|macOS-CLAP)
+        printf '%s' "vAddivoxDemo"
+        return
+        ;;
+    esac
+  fi
+
+  printf '%s' "vAddivox"
+}
+
 run_notarytool_submit() {
   local label="$1"
   local log_file="$2"
@@ -721,6 +740,10 @@ xcode_build() {
   local derived_data="$5"
   local log_file="$6"
   local name="$7"
+  local preprocessor_definitions
+  local objc_prefix
+  preprocessor_definitions="$(extra_preprocessor_definitions_for_scheme "${scheme}")"
+  objc_prefix="$(objc_prefix_for_scheme "${scheme}")"
 
   run_step "${name}" "${log_file}" \
     env "ADDIVOX_DEMO=${ADDIVOX_DEMO_VALUE}" \
@@ -738,7 +761,8 @@ xcode_build() {
       BINARY_NAME="${BUILD_BINARY_NAME}" \
       ADDIVOX_DEVELOPMENT_TEAM="${ADDIVOX_DEVELOPMENT_TEAM}" \
       DEVELOPMENT_TEAM="${ADDIVOX_DEVELOPMENT_TEAM}" \
-      GCC_PREPROCESSOR_DEFINITIONS="\$(inherited) ADDIVOX_DEMO=${ADDIVOX_DEMO_VALUE}" \
+      ADDIVOX_OBJC_PREFIX="${objc_prefix}" \
+      GCC_PREPROCESSOR_DEFINITIONS="${preprocessor_definitions}" \
       DEPLOYMENT_LOCATION=NO \
       SKIP_INSTALL=NO \
       CODE_SIGNING_ALLOWED=NO \
@@ -754,6 +778,10 @@ xcode_archive() {
   local derived_data="$5"
   local log_file="$6"
   local name="$7"
+  local preprocessor_definitions
+  local objc_prefix
+  preprocessor_definitions="$(extra_preprocessor_definitions_for_scheme "${scheme}")"
+  objc_prefix="$(objc_prefix_for_scheme "${scheme}")"
 
   mkdir -p "$(dirname "${archive_path}")"
 
@@ -770,7 +798,8 @@ xcode_archive() {
       BINARY_NAME="${BUILD_BINARY_NAME}" \
       ADDIVOX_DEVELOPMENT_TEAM="${ADDIVOX_DEVELOPMENT_TEAM}" \
       DEVELOPMENT_TEAM="${ADDIVOX_DEVELOPMENT_TEAM}" \
-      GCC_PREPROCESSOR_DEFINITIONS="\$(inherited) ADDIVOX_DEMO=${ADDIVOX_DEMO_VALUE}" \
+      ADDIVOX_OBJC_PREFIX="${objc_prefix}" \
+      GCC_PREPROCESSOR_DEFINITIONS="${preprocessor_definitions}" \
       SKIP_INSTALL=NO \
       DEPLOYMENT_POSTPROCESSING=NO \
       STRIP_INSTALLED_PRODUCT=NO \
